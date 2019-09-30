@@ -397,7 +397,7 @@ template <typename T = double>
     { this->insert(*treeRoot, data); }
 
     template <typename T>
-    void Octree<T>::insert(Octree<T>::Node & node, const Node & data)
+    void Octree<T>::insert(Node & node, const Node & data)
     {
         NodePoint *p = node.getPositionPoint(data);
         if (p == nullptr)
