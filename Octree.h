@@ -177,14 +177,14 @@ template <typename T = double>
 
         ~Octree();
         
-        NodePoint find(const Node & data) const;
+        NodePoint find(const Node & data);
 
         void insert(const Node & data);
 
         void insert(Node & node, const Node & data);
 
     private:
-        NodePoint find(const Node & node, const Node & data) const;
+        NodePoint find(Node & node, const Node & data);
     };
 
     template <typename T>
@@ -389,8 +389,8 @@ template <typename T = double>
     Octree<T>::~Octree() { release(treeRoot); }
 
     template <typename T>
-    inline typename Octree<T>::NodePoint Octree<T>::find(const Node & data) const 
-    { return this->find(treeRoot, data); }
+    inline typename Octree<T>::NodePoint Octree<T>::find(const Node & data)
+    { return this->find(*treeRoot, data); }
 
     template <typename T>
     inline void Octree<T>::insert(const Node & data)
@@ -447,14 +447,14 @@ template <typename T = double>
     }
 
     template <typename T>
-    typename Octree<T>::NodePoint Octree<T>::find(const Node & node, const Node & data) const
+    typename Octree<T>::NodePoint Octree<T>::find(Node & node, const Node & data)
     {
         NodePoint *p = node.getPositionPoint(data);
         if (p == nullptr) 
             return nullptr;
         else if (*p != nullptr && (*p)->type == NodeType::root)
-            return find(*p, data);
-        return node;
+            return find(**p, data);
+        return &node;
     }
 
 } // namespace Octree

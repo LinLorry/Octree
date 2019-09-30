@@ -25,4 +25,8 @@ int main()
     tree.insert(g);
     tree.insert(h);
     tree.insert(i);
+
+    Octree::Octree<>::NodePoint p = tree.find(a);
+    Octree::Octree<>::NodePoint q = tree.find(i);
+
 }
