@@ -26,7 +26,13 @@ int main()
     tree.insert(h);
     tree.insert(i);
 
-    Octree::Octree<>::NodePoint p = tree.find(a);
-    Octree::Octree<>::NodePoint q = tree.find(i);
+    Octree::Octree<>::NodePoint j = tree.find(a);
+    Octree::Octree<>::NodePoint k = tree.find(b);
+    Octree::Octree<>::NodePoint l = tree.find(c);
+    Octree::Octree<>::NodePoint m = tree.find(i);
+
+    tree.remove(a);
+    tree.remove(*k, b);
+    tree.remove(*m, i);
 
 }

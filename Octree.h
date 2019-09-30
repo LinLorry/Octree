@@ -183,6 +183,10 @@ template <typename T = double>
 
         void insert(Node & node, const Node & data);
 
+        void remove(const Node & data);
+
+        void remove(Node & node, const Node & data);
+
     private:
         NodePoint find(Node & node, const Node & data);
     };
@@ -444,6 +448,26 @@ template <typename T = double>
         }
         
         return insert(**p, data);
+    }
+
+    template <typename T>
+    inline void Octree<T>::remove(const Node & data)
+    { return this->remove(*treeRoot, data); }
+
+    template <typename T>
+    void Octree<T>::remove(Node & node, const Node & data)
+    {
+        NodePoint *p = node.getPositionPoint(data);
+        if (p == nullptr)
+            return ;
+        else if (*p == nullptr) return;
+        else if ((*p)->type == NodeType::leave)
+        {
+            delete *p;
+            *p = nullptr;
+            return ;
+        } 
+        remove(**p, data);
     }
 
     template <typename T>
