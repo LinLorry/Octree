@@ -1,13 +1,26 @@
-#include <iostream>
-
 #ifndef OCTREE_H
 #define OCTREE_H
 
 namespace Octree
 {
-    template <typename T = double>
+template <typename T = double>
     class Octree
     {
+    private:
+        enum Result 
+        {
+            outside = 0,
+            equal,
+            xPositive_yPositive_zPositive,
+            xPositive_yPositive_zNegative,
+            xPositive_yNegative_zNegative,
+            xPositive_yNegative_zPositive,
+            xNegative_yPositive_zPositive,
+            xNegative_yPositive_zNegative,
+            xNegative_yNegative_zNegative,
+            xNegative_yNegative_zPositive,
+            undefine
+        };
     public:
         enum NodeType {root, leave};
 
@@ -36,7 +49,7 @@ namespace Octree
             ) :
                 xMin(xMin), xMax(xMax),
                 yMin(yMin), yMax(yMax),
-                zMin(xMin), zMax(xMax) { }
+                zMin(zMin), zMax(zMax) { }
 
             void operator=(const Root & root)
             {
@@ -103,104 +116,47 @@ namespace Octree
             Data(Leave && leave) : leave(leave) { }
         };
 
-        struct Comparable
+        class Node
         {
-            NodeType type;
-            Data data;
+            private:
+                friend class Octree<T>;
+                typedef Node * NodePoint;
 
-            Comparable() { }
+                NodeType type;
+                Data data;
 
-            Comparable(const Comparable & c) : type(c.type) 
-            {
-                if (type == root)
-                    data.root = c.data.root;
-                else 
-                    data.leave = c.data.leave;            
-            }
+                NodePoint xPositive_yPositive_zPositive,
+                        xPositive_yPositive_zNegative,
+                        xPositive_yNegative_zNegative,
+                        xPositive_yNegative_zPositive,
+                        xNegative_yPositive_zPositive,
+                        xNegative_yPositive_zNegative,
+                        xNegative_yNegative_zNegative,
+                        xNegative_yNegative_zPositive;
 
-            Comparable(Comparable && c) : type(c.type)
-            {
-                if (type == root)
-                    data.root = c.data.root;
-                else 
-                    data.leave = c.data.leave;            
-            }
+            public:
+                Node(const Node & node);
+                Node(const Leave & leave);
 
-            Comparable(Root root) : type(NodeType::root) { data.root = root; }
+                Node(
+                    const Root & root, 
+                    const NodePoint xPositive_yPositive_zPositive = nullptr,
+                    const NodePoint xPositive_yPositive_zNegative = nullptr,
+                    const NodePoint xPositive_yNegative_zNegative = nullptr,
+                    const NodePoint xPositive_yNegative_zPositive = nullptr,
+                    const NodePoint xNegative_yPositive_zPositive = nullptr,
+                    const NodePoint xNegative_yPositive_zNegative = nullptr,
+                    const NodePoint xNegative_yNegative_zNegative = nullptr,
+                    const NodePoint xNegative_yNegative_zPositive = nullptr
+                );
 
-            Comparable(Leave leave) : type(NodeType::leave) { data.leave = leave; }
+                const Result comparator(const Node & node) const;
 
-            void operator=(const Comparable & oc)
-            {
-                type = oc.type;
-                if (oc.type == NodeType::root)
-                    data.root = oc.data.root;
-                else
-                    data.leave = oc.data.leave;
-            }
+                NodePoint *getPositionPoint(const Node & node);
 
-            void operator=(Comparable && oc)
-            {
-                type = oc.type;
-                if (oc.type == NodeType::root)
-                    data.root = oc.data.root;
-                else
-                    data.leave = oc.data.leave;
-            }
+                void setPosition(const NodePoint node);
         };
     
-    private:
-        enum Result 
-        {
-            outside = 0,
-            equal,
-            xPositive_yPositive_zPositive,
-            xPositive_yPositive_zNegative,
-            xPositive_yNegative_zNegative,
-            xPositive_yNegative_zPositive,
-            xNegative_yPositive_zPositive,
-            xNegative_yPositive_zNegative,
-            xNegative_yNegative_zNegative,
-            xNegative_yNegative_zPositive,
-            undefine
-        };
-
-        struct Node
-        {
-            typedef Node * NodePoint;
-
-            Comparable data;
-            NodePoint xPositive_yPositive_zPositive,
-                      xPositive_yPositive_zNegative,
-                      xPositive_yNegative_zNegative,
-                      xPositive_yNegative_zPositive,
-                      xNegative_yPositive_zPositive,
-                      xNegative_yPositive_zNegative,
-                      xNegative_yNegative_zNegative,
-                      xNegative_yNegative_zPositive;
-
-            Node(
-                const Comparable & data, 
-                const NodePoint xPositive_yPositive_zPositive = nullptr,
-                const NodePoint xPositive_yPositive_zNegative = nullptr,
-                const NodePoint xPositive_yNegative_zNegative = nullptr,
-                const NodePoint xPositive_yNegative_zPositive = nullptr,
-                const NodePoint xNegative_yPositive_zPositive = nullptr,
-                const NodePoint xNegative_yPositive_zNegative = nullptr,
-                const NodePoint xNegative_yNegative_zNegative = nullptr,
-                const NodePoint xNegative_yNegative_zPositive = nullptr
-            ) :
-            data(data),
-            xPositive_yPositive_zPositive(xPositive_yPositive_zPositive),
-            xPositive_yPositive_zNegative(xPositive_yPositive_zNegative),
-            xPositive_yNegative_zNegative(xPositive_yNegative_zNegative),
-            xPositive_yNegative_zPositive(xPositive_yNegative_zPositive),
-            xNegative_yPositive_zPositive(xNegative_yPositive_zPositive),
-            xNegative_yPositive_zNegative(xNegative_yPositive_zNegative),
-            xNegative_yNegative_zNegative(xNegative_yNegative_zNegative),
-            xNegative_yNegative_zPositive(xNegative_yNegative_zPositive) {}
-        };
-
     public:
         typedef Node * NodePoint;
     
@@ -208,12 +164,6 @@ namespace Octree
         NodePoint treeRoot;
 
     private:
-        static const Result DataComparator(const Comparable & first, const Comparable & second);
-
-        static NodePoint * getPositionPoint(const NodePoint node, const Comparable & data);
-
-        static void setPositionPoint(const NodePoint node, const NodePoint p);
-
         static void release(NodePoint node);
 
     public:
@@ -227,95 +177,135 @@ namespace Octree
 
         ~Octree();
         
-        NodePoint find(const Comparable & data) const;
+        NodePoint find(const Node & data) const;
 
-        void insert(const Comparable & data);
+        void insert(const Node & data);
+
+        void insert(Node & node, const Node & data);
 
     private:
-        NodePoint find(const NodePoint node, const Comparable & data) const;
-
-        void insert(NodePoint node, const Comparable & data);
+        NodePoint find(const Node & node, const Node & data) const;
     };
 
     template <typename T>
-    const typename Octree<T>::Result Octree<T>::DataComparator(const Comparable & first, const Comparable & second)
-    {
-
-        if (first.type == NodeType::leave)
+    Octree<T>::Node::Node(const Node & node) :
+        type(node.type),
+        xPositive_yPositive_zPositive(node.xPositive_yPositive_zPositive),
+        xPositive_yPositive_zNegative(node.xPositive_yPositive_zNegative),
+        xPositive_yNegative_zNegative(node.xPositive_yNegative_zNegative),
+        xPositive_yNegative_zPositive(node.xPositive_yNegative_zPositive),
+        xNegative_yPositive_zPositive(node.xNegative_yPositive_zPositive),
+        xNegative_yPositive_zNegative(node.xNegative_yPositive_zNegative),
+        xNegative_yNegative_zNegative(node.xNegative_yNegative_zNegative),
+        xNegative_yNegative_zPositive(node.xNegative_yNegative_zPositive) 
         {
-            if (second.type == NodeType::root)
-                return DataComparator(second, first);
-            
-            if (
-                first.data.leave.x == second.data.leave.x &&
-                first.data.leave.y == second.data.leave.y &&
-                first.data.leave.z == second.data.leave.z
-            ) return Result::equal;
-
-            return Result::undefine;
+            if (node.type == Octree<T>::NodeType::root) data.root = node.data.root;
+            else data.leave = node.data.leave; 
         }
+
+    template <typename T>
+    Octree<T>::Node::Node(const Leave & leave) : 
+    type(Octree<T>::NodeType::leave), data(leave),
+    xPositive_yPositive_zPositive(nullptr),
+    xPositive_yPositive_zNegative(nullptr),
+    xPositive_yNegative_zNegative(nullptr),
+    xPositive_yNegative_zPositive(nullptr),
+    xNegative_yPositive_zPositive(nullptr),
+    xNegative_yPositive_zNegative(nullptr),
+    xNegative_yNegative_zNegative(nullptr),
+    xNegative_yNegative_zPositive(nullptr) 
+     { }
+
+    template <typename T>
+    Octree<T>::Node::Node(
+        const Root & root, 
+        const NodePoint xPositive_yPositive_zPositive,
+        const NodePoint xPositive_yPositive_zNegative,
+        const NodePoint xPositive_yNegative_zNegative,
+        const NodePoint xPositive_yNegative_zPositive,
+        const NodePoint xNegative_yPositive_zPositive,
+        const NodePoint xNegative_yPositive_zNegative,
+        const NodePoint xNegative_yNegative_zNegative,
+        const NodePoint xNegative_yNegative_zPositive
+    ) :
+    type(Octree::NodeType::root), data(root),
+    xPositive_yPositive_zPositive(xPositive_yPositive_zPositive),
+    xPositive_yPositive_zNegative(xPositive_yPositive_zNegative),
+    xPositive_yNegative_zNegative(xPositive_yNegative_zNegative),
+    xPositive_yNegative_zPositive(xPositive_yNegative_zPositive),
+    xNegative_yPositive_zPositive(xNegative_yPositive_zPositive),
+    xNegative_yPositive_zNegative(xNegative_yPositive_zNegative),
+    xNegative_yNegative_zNegative(xNegative_yNegative_zNegative),
+    xNegative_yNegative_zPositive(xNegative_yNegative_zPositive) { }
+
+    template <typename T>
+    const typename Octree<T>::Result Octree<T>::Node::comparator(const Node & node) const
+    {
+        if (type == NodeType::leave)
+            if (node.type == NodeType::root)
+                return Result::undefine;
+            else if (
+                this->data.leave.x == node.data.leave.x &&
+                this->data.leave.y == node.data.leave.y &&
+                this->data.leave.z == node.data.leave.z
+            ) return Result::equal;
+            else return Result::undefine;
         
-        if (second.type == NodeType::root) return Result::undefine;
+        if (node.type == NodeType::root) return Result::undefine;
 
         if (
-            first.data.root.xMax < second.data.leave.x || 
-            first.data.root.xMin > second.data.leave.x ||
-            first.data.root.yMax < second.data.leave.y || 
-            first.data.root.yMin > second.data.leave.y ||
-            first.data.root.zMax < second.data.leave.z ||
-            first.data.root.zMin > second.data.leave.z
+            this->data.root.xMax < node.data.leave.x || 
+            this->data.root.xMin > node.data.leave.x ||
+            this->data.root.yMax < node.data.leave.y || 
+            this->data.root.yMin > node.data.leave.y ||
+            this->data.root.zMax < node.data.leave.z ||
+            this->data.root.zMin > node.data.leave.z
         ) return Result::outside;
         else
         {
-            auto xTmp = (first.data.root.xMax + first.data.root.xMin) / 2;
-            auto yTmp = (first.data.root.yMax + first.data.root.yMin) / 2;
-            auto zTmp = (first.data.root.zMax + first.data.root.zMin) / 2;
+            T xTmp = (this->data.root.xMax + this->data.root.xMin) / 2;
+            T yTmp = (this->data.root.yMax + this->data.root.yMin) / 2;
+            T zTmp = (this->data.root.zMax + this->data.root.zMin) / 2;
 
-            if (second.data.leave.x > xTmp)
-            {
-                if (second.data.leave.y > yTmp)
-                {
-                    if (second.data.leave.z > zTmp)
-                        return xPositive_yPositive_zPositive;
-                    return xPositive_yPositive_zNegative;
-                }
-                if (second.data.leave.z > zTmp)
-                    return xPositive_yNegative_zPositive;
-                return xPositive_yNegative_zNegative;
-            }
-            if (second.data.leave.y > yTmp)
-            {
-                if (second.data.leave.z > zTmp)
-                    return xNegative_yPositive_zPositive;
-                return xNegative_yPositive_zNegative;
-            }
-            if (second.data.leave.z > zTmp)
-                return xNegative_yNegative_zPositive;
-            return xNegative_yNegative_zNegative;
+            if (node.data.leave.x > xTmp)
+                if (node.data.leave.y > yTmp)
+                    if (node.data.leave.z > zTmp)
+                        return Result::xPositive_yPositive_zPositive;
+                    else return Result::xPositive_yPositive_zNegative;
+                else if (node.data.leave.z > zTmp)
+                    return Result::xPositive_yNegative_zPositive;
+                else return Result::xPositive_yNegative_zNegative;
+            else if (node.data.leave.y > yTmp)
+                if (node.data.leave.z > zTmp)
+                    return Result::xNegative_yPositive_zPositive;
+                else return Result::xNegative_yPositive_zNegative;
+            else if (node.data.leave.z > zTmp)
+                return Result::xNegative_yNegative_zPositive;
+            return Result::xNegative_yNegative_zNegative;
         } 
     }
 
     template <typename T>
-    typename Octree<T>::NodePoint *Octree<T>::getPositionPoint(const Octree<T>::NodePoint node, const Comparable & data)
+    typename Octree<T>::Node::NodePoint *Octree<T>::Node::getPositionPoint(const Node & node)
     {
-        switch (DataComparator(node->data, data))
+        switch (this->comparator(node))
         {
-            case xPositive_yPositive_zPositive:
-                return &(node->xPositive_yPositive_zPositive);
-            case xPositive_yPositive_zNegative:
-                return &(node->xPositive_yPositive_zNegative);
-            case xPositive_yNegative_zNegative:
-                return &(node->xPositive_yNegative_zNegative);
-            case xPositive_yNegative_zPositive:
-                return &(node->xPositive_yNegative_zPositive);
-            case xNegative_yPositive_zPositive:
-                return &(node->xNegative_yPositive_zPositive);
-            case xNegative_yPositive_zNegative:
-                return &(node->xNegative_yPositive_zNegative);
-            case xNegative_yNegative_zNegative:
-                return &(node->xNegative_yNegative_zNegative);
-            case xNegative_yNegative_zPositive:
-                return &(node->xNegative_yNegative_zPositive);
+            case Result::xPositive_yPositive_zPositive:
+                return &(this->xPositive_yPositive_zPositive);
+            case Result::xPositive_yPositive_zNegative:
+                return &(this->xPositive_yPositive_zNegative);
+            case Result::xPositive_yNegative_zNegative:
+                return &(this->xPositive_yNegative_zNegative);
+            case Result::xPositive_yNegative_zPositive:
+                return &(this->xPositive_yNegative_zPositive);
+            case Result::xNegative_yPositive_zPositive:
+                return &(this->xNegative_yPositive_zPositive);
+            case Result::xNegative_yPositive_zNegative:
+                return &(this->xNegative_yPositive_zNegative);
+            case Result::xNegative_yNegative_zNegative:
+                return &(this->xNegative_yNegative_zNegative);
+            case Result::xNegative_yNegative_zPositive:
+                return &(this->xNegative_yNegative_zPositive);
             case outside:
             case undefine:
             default:
@@ -324,34 +314,34 @@ namespace Octree
     }
 
     template <typename T>
-    void Octree<T>::setPositionPoint(const Octree<T>::NodePoint node, const Octree<T>::NodePoint p)
+    void Octree<T>::Node::setPosition(const NodePoint node)
     {
-        switch (DataComparator(node->data, p->data))
+        switch (this->comparator(*node))
         {
-            case xPositive_yPositive_zPositive:
-                node->xPositive_yPositive_zPositive = p;
-                break;
-            case xPositive_yPositive_zNegative:
-                node->xPositive_yPositive_zNegative = p;
-                break;
-            case xPositive_yNegative_zNegative:
-                node->xPositive_yNegative_zNegative = p;
-                break;
-            case xPositive_yNegative_zPositive:
-                node->xPositive_yNegative_zPositive = p;
-                break;
-            case xNegative_yPositive_zPositive:
-                node->xNegative_yPositive_zPositive = p;
-                break;
-            case xNegative_yPositive_zNegative:
-                node->xNegative_yPositive_zNegative = p;
-                break;
-            case xNegative_yNegative_zNegative:
-                node->xNegative_yNegative_zNegative = p;
-                break;
-            case xNegative_yNegative_zPositive:
-                node->xNegative_yNegative_zPositive = p;
-                break;
+            case Result::xPositive_yPositive_zPositive:
+                this->xPositive_yPositive_zPositive = node;
+                return;
+            case Result::xPositive_yPositive_zNegative:
+                this->xPositive_yPositive_zNegative = node;
+                return;
+            case Result::xPositive_yNegative_zNegative:
+                this->xPositive_yNegative_zNegative = node;
+                return;
+            case Result::xPositive_yNegative_zPositive:
+                this->xPositive_yNegative_zPositive = node;
+                return;
+            case Result::xNegative_yPositive_zPositive:
+                this->xNegative_yPositive_zPositive = node;
+                return;
+            case Result::xNegative_yPositive_zNegative:
+                this->xNegative_yPositive_zNegative = node;
+                return;
+            case Result::xNegative_yNegative_zNegative:
+                this->xNegative_yNegative_zNegative = node;
+                return;
+            case Result::xNegative_yNegative_zPositive:
+                this->xNegative_yNegative_zPositive = node;
+                return;
         }
     }
 
@@ -387,40 +377,29 @@ namespace Octree
 
     template <typename T>
     Octree<T>::Octree(
-            const T xMin, const T xMax,
+        const T xMin, const T xMax,
         const T yMin, const T yMax,
         const T zMin, const T zMax
-    ) { treeRoot = new Node(Comparable(Root(xMin, xMax, yMin, yMax, zMin, zMax))); }
+    ) : treeRoot(new Node(Root(xMin, xMax, yMin, yMax, zMin, zMax))) { }
 
     template <typename T>
-    Octree<T>::Octree(const Octree<T>::Root & r) { treeRoot = new Node(Comparable(r)); }
+    Octree<T>::Octree(const Root & r) : treeRoot(new Node(r)) { }
 
     template <typename T>
     Octree<T>::~Octree() { release(treeRoot); }
 
     template <typename T>
-    inline typename Octree<T>::NodePoint Octree<T>::find(const Octree<T>::Comparable & data) const 
-    { return find(treeRoot, data); }
+    inline typename Octree<T>::NodePoint Octree<T>::find(const Node & data) const 
+    { return this->find(treeRoot, data); }
 
     template <typename T>
-    inline void Octree<T>::insert(const Octree<T>::Comparable & data)
-    { insert(treeRoot, data); }
+    inline void Octree<T>::insert(const Node & data)
+    { this->insert(*treeRoot, data); }
 
     template <typename T>
-    typename Octree<T>::NodePoint Octree<T>::find(const Octree<T>::NodePoint node, const Comparable & data) const
+    void Octree<T>::insert(Octree<T>::Node & node, const Node & data)
     {
-        NodePoint *p = getPositionPoint(node, data);
-        if (p == nullptr) 
-            return nullptr;
-        else if (*p != nullptr && ((*p)->data).type == NodeType::root)
-            return find(*p, data);
-        return node;
-    }
-
-    template <typename T>
-    void Octree<T>::insert(Octree<T>::NodePoint node, const Octree<T>::Comparable & data)
-    {
-        NodePoint *p = getPositionPoint(node, data);
+        NodePoint *p = node.getPositionPoint(data);
         if (p == nullptr)
             return ;
         else if (*p == nullptr)
@@ -428,78 +407,54 @@ namespace Octree
             *p = new Node(data);
             return ;
         }
-        else if (((*p)->data).type == NodeType::leave)
+        else if ((*p)->type == NodeType::leave)
         {
-            if (DataComparator((*p)->data, data) == Result::equal) return ; 
-            
-            Comparable *c = new Comparable();
-            c->type = NodeType::root;
+            if ((*p)->comparator(data) == Result::equal) return ; 
 
-            auto xMin = (node->data).data.root.xMin, xMax = (node->data).data.root.xMax,
-                 yMin = (node->data).data.root.yMin, yMax = (node->data).data.root.yMax,
-                 zMin = (node->data).data.root.zMin, zMax = (node->data).data.root.zMax,
+            T xMin = node.data.root.xMin, xMax = node.data.root.xMax,
+                yMin = node.data.root.yMin, yMax = node.data.root.yMax,
+                zMin = node.data.root.zMin, zMax = node.data.root.zMax,
                  
-                 xTmp = ((node->data).data.root.xMin + (node->data).data.root.xMax) / 2,
-                 yTmp = ((node->data).data.root.yMin + (node->data).data.root.yMax) / 2,
-                 zTmp = ((node->data).data.root.zMin + (node->data).data.root.zMax) / 2;
+                xTmp = (node.data.root.xMin + node.data.root.xMax) / 2,
+                yTmp = (node.data.root.yMin + node.data.root.yMax) / 2,
+                zTmp = (node.data.root.zMin + node.data.root.zMax) / 2;
 
-            switch (DataComparator(node->data, data))
-            {
-                case xPositive_yPositive_zPositive:
-                    xMin = xTmp;
-                    yMin = yTmp;
-                    zMin = zTmp;
-                    break;
-                case xPositive_yPositive_zNegative:
-                    xMin = xTmp;
-                    yMin = yTmp;
-                    zMax = zTmp;
-                    break;
-                case xPositive_yNegative_zNegative:
-                    xMin = xTmp;
-                    yMax = yTmp;
-                    zMax = zTmp;
-                    break;
-                case xPositive_yNegative_zPositive:
-                    xMin = xTmp;
-                    yMax = yTmp;
-                    zMin = zTmp;
-                    break;
-                case xNegative_yPositive_zPositive:
-                    xMax = xTmp;
-                    yMin = yTmp;
-                    zMin = zTmp;
-                    break;
-                case xNegative_yPositive_zNegative:
-                    xMax = xTmp;
-                    yMin = yTmp;
-                    zMax = zTmp;
-                    break;
-                case xNegative_yNegative_zNegative:
-                    xMax = xTmp;
-                    yMax = yTmp;
-                    zMax = zTmp;
-                    break;
-                case xNegative_yNegative_zPositive:
-                    xMin = xTmp;
-                    yMin = yTmp;
-                    zMin = zTmp;
-                    break;
-            }
+            NodePoint *q = &node.xPositive_yPositive_zPositive;
+            short diff = 0;
+
+            for (;p!=q; ++q, ++diff) ;
             
-            c->data.root.xMin = xMin;
-            c->data.root.xMax = xMax;
-            c->data.root.yMin = yMin;
-            c->data.root.yMax = yMax;
-            c->data.root.zMin = zMin;
-            c->data.root.zMax = zMax;
+            if (diff < 4) xMin = xTmp;
+            else xMax = xTmp;
 
-            NodePoint n = new Node(*c);
-            setPositionPoint(n, *p);
+            if (diff%4 < 2) yMin = yTmp;
+            else yMax = yTmp;
+
+            if (diff%4 == 0 || diff%4 == 3) zMin = zTmp;
+            else zMax= zTmp;
+            
+            NodePoint n = new Node(Root(
+                xMin, xMax,
+                yMin, yMax,
+                zMin, zMax
+            ));
+            
+            n->setPosition(*p);
             *p = n;
         }
         
-        return insert(*p, data);
+        return insert(**p, data);
+    }
+
+    template <typename T>
+    typename Octree<T>::NodePoint Octree<T>::find(const Node & node, const Node & data) const
+    {
+        NodePoint *p = node.getPositionPoint(data);
+        if (p == nullptr) 
+            return nullptr;
+        else if (*p != nullptr && (*p)->type == NodeType::root)
+            return find(*p, data);
+        return node;
     }
 
 } // namespace Octree
