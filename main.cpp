@@ -1,21 +1,28 @@
 #include <Octree.h>
 
+#include <iostream>
+
 int main()
 {
     Octree::Octree<> tree(0,1, 0, 1, 0,1);
-    Octree::Octree<double>::Comparable c;
-    c.type = Octree::Octree<>::NodeType::leave;
-    c.data.leave.x = 0.1;
-    c.data.leave.y = 0.1;
-    c.data.leave.z = 0.1;
 
+    Octree::Octree<>::Node a(Octree::Octree<>::Leave(0.1, 0.1, 0.1));
+    Octree::Octree<>::Node b(Octree::Octree<>::Leave(0.1, 0.1, 0.2));
+    Octree::Octree<>::Node c(Octree::Octree<>::Leave(0.6, 0.3, 0.1));
+    Octree::Octree<>::Node d(Octree::Octree<>::Leave(0.6, 0.3, 0.2));
+    Octree::Octree<>::Node e(Octree::Octree<>::Leave(0.1, 0.2, 0.1));
+    Octree::Octree<>::Node f(Octree::Octree<>::Leave(0.1, 0.1, 0.11));
+    Octree::Octree<>::Node g(Octree::Octree<>::Leave(0.1, 0.1, 0.111));
+    Octree::Octree<>::Node h(Octree::Octree<>::Leave(0.1, 0.1, 0.1111));
+    Octree::Octree<>::Node i(Octree::Octree<>::Leave(0.1, 0.1, 0.1));
+
+    tree.insert(a);
+    tree.insert(b);
     tree.insert(c);
-
-    tree.insert(c);
-
-    Octree::Octree<>::NodePoint p;
-    p = tree.find(c);
-    if (p == nullptr)
-        std::cout << "NO" << std::endl;
-    std::cout << p->data.data.leave.x << std::endl;
+    tree.insert(d);
+    tree.insert(e);
+    tree.insert(f);
+    tree.insert(g);
+    tree.insert(h);
+    tree.insert(i);
 }
