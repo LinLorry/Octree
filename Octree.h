@@ -6,6 +6,10 @@ namespace Octree
 template <typename T = double>
     class Octree
     {
+    public:
+        class Node;
+        typedef Node * NodePoint;
+        
     private:
         enum Result 
         {
@@ -120,7 +124,6 @@ template <typename T = double>
         {
             private:
                 friend class Octree<T>;
-                typedef Node * NodePoint;
 
                 NodeType type;
                 Data data;
@@ -156,9 +159,6 @@ template <typename T = double>
 
                 void setPosition(const NodePoint node);
         };
-    
-    public:
-        typedef Node * NodePoint;
     
     private:
         NodePoint treeRoot;
@@ -286,7 +286,7 @@ template <typename T = double>
     }
 
     template <typename T>
-    typename Octree<T>::Node::NodePoint *Octree<T>::Node::getPositionPoint(const Node & node)
+    typename Octree<T>::NodePoint *Octree<T>::Node::getPositionPoint(const Node & node)
     {
         switch (this->comparator(node))
         {
