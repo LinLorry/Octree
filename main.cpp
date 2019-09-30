@@ -32,7 +32,7 @@ int main()
     Octree::Octree<>::NodePoint m = tree.find(i);
 
     tree.remove(a);
-    tree.remove(*k, b);
-    tree.remove(*m, i);
+    tree.remove(b);
+    tree.remove(i);
 
 }

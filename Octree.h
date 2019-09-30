@@ -181,14 +181,14 @@ template <typename T = double>
 
         void insert(const Node & data);
 
-        void insert(Node & node, const Node & data);
-
         void remove(const Node & data);
-
-        void remove(Node & node, const Node & data);
 
     private:
         NodePoint find(Node & node, const Node & data);
+        
+        void insert(NodePoint node, const Node & data);
+
+        void remove(NodePoint node, const Node & data);
     };
 
     template <typename T>
@@ -398,12 +398,12 @@ template <typename T = double>
 
     template <typename T>
     inline void Octree<T>::insert(const Node & data)
-    { this->insert(*treeRoot, data); }
+    { this->insert(treeRoot, data); }
 
     template <typename T>
-    void Octree<T>::insert(Node & node, const Node & data)
+    void Octree<T>::insert(NodePoint node, const Node & data)
     {
-        NodePoint *p = node.getPositionPoint(data);
+        NodePoint *p = node->getPositionPoint(data);
         if (p == nullptr)
             return ;
         else if (*p == nullptr)
@@ -415,15 +415,15 @@ template <typename T = double>
         {
             if ((*p)->comparator(data) == Result::equal) return ; 
 
-            T xMin = node.data.root.xMin, xMax = node.data.root.xMax,
-                yMin = node.data.root.yMin, yMax = node.data.root.yMax,
-                zMin = node.data.root.zMin, zMax = node.data.root.zMax,
+            T   xMin = node->data.root.xMin, xMax = node->data.root.xMax,
+                yMin = node->data.root.yMin, yMax = node->data.root.yMax,
+                zMin = node->data.root.zMin, zMax = node->data.root.zMax,
                  
-                xTmp = (node.data.root.xMin + node.data.root.xMax) / 2,
-                yTmp = (node.data.root.yMin + node.data.root.yMax) / 2,
-                zTmp = (node.data.root.zMin + node.data.root.zMax) / 2;
+                xTmp = (node->data.root.xMin + node->data.root.xMax) / 2,
+                yTmp = (node->data.root.yMin + node->data.root.yMax) / 2,
+                zTmp = (node->data.root.zMin + node->data.root.zMax) / 2;
 
-            NodePoint *q = &node.xPositive_yPositive_zPositive;
+            NodePoint *q = &node->xPositive_yPositive_zPositive;
             short diff = 0;
 
             for (;p!=q; ++q, ++diff) ;
@@ -447,17 +447,17 @@ template <typename T = double>
             *p = n;
         }
         
-        return insert(**p, data);
+        return insert(*p, data);
     }
 
     template <typename T>
     inline void Octree<T>::remove(const Node & data)
-    { return this->remove(*treeRoot, data); }
+    { return this->remove(treeRoot, data); }
 
     template <typename T>
-    void Octree<T>::remove(Node & node, const Node & data)
+    void Octree<T>::remove(NodePoint node, const Node & data)
     {
-        NodePoint *p = node.getPositionPoint(data);
+        NodePoint *p = node->getPositionPoint(data);
         if (p == nullptr)
             return ;
         else if (*p == nullptr) return;
@@ -467,7 +467,7 @@ template <typename T = double>
             *p = nullptr;
             return ;
         } 
-        remove(**p, data);
+        remove(*p, data);
     }
 
     template <typename T>
