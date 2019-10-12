@@ -3,7 +3,28 @@
 
 namespace Octree
 {
-template <typename T = double>
+    /*
+        Octree:
+
+        Field:
+        treeRoot:   this Octree Root.
+
+        Function:
+        Octree:     the init function, set up the treeRoot.
+            parameter:  - const T, const T,
+                          const T, const T,
+                          const T, const T 
+                        - const Root &
+        ~Octree:    free whole tree.
+        find:       find the node, retunr the point point to the node.
+            parameter:  cosnt Node &
+            return: Node* 
+        insert:     insert the node into tree. If node which will be insert type not leave, throw expection. 
+            parameter:  const Node &
+        remove:     remove the node in the tree.
+            parameter:  const Node &
+    */
+    template <typename T = double>
     class Octree
     {
     public:
@@ -11,6 +32,14 @@ template <typename T = double>
         typedef Node * NodePoint;
         
     private:
+        /*
+            Nodes compare result:
+            outside:                        outside the node.
+            equal:                          nodes are all leave and have the same position.
+            xPositive_yPositive_zPositive   on the x positive axis, y positive axis, z positive axis.
+            ...
+            undefine                        undefined case
+        */
         enum Result 
         {
             outside = 0,
@@ -25,9 +54,17 @@ template <typename T = double>
             xNegative_yNegative_zPositive,
             undefine
         };
+
     public:
+        /*
+            Node Type: Root and Leave
+        */
         enum NodeType {root, leave};
 
+        /*
+            Root is a struct 
+            Its child in the scope of xMin~xMax, yMin~yMax, zMin~zMax.
+        */
         struct Root
         {
             T xMin, xMax;
@@ -76,6 +113,11 @@ template <typename T = double>
             }
         };
 
+        /*
+            Leave is a struct
+            It is the final data in the tree.
+            Its position is (x, y, z).
+        */
         struct Leave
         {
             T x, y, z;
@@ -107,6 +149,11 @@ template <typename T = double>
             }
         };
 
+        /*
+            Data is a union
+            Contain Root and Leave
+            It's the Node data field.
+        */
         union Data
         {
             Root root;
@@ -121,6 +168,35 @@ template <typename T = double>
             Data(Leave && leave) : leave(leave) { }
         };
 
+        /*
+            Octree Node:
+
+            Field:
+            type:                           this node type
+            data:                           the scope of positive or the positive of data.
+            xPositive_yPositive_zPositive:  pointer to the node which on the self x positive axis, y positive axis, z positive axis.
+            ...
+
+            Function:
+            comparator:                     compare with the parameter, return value is enum Result.
+                parameter:      const Node &
+                return value:   cosnt Result
+            getPositionPoint                return a pointer point to a pointer to the scope of the parameter.
+                parameter:      const Node &
+                return value:   Node **
+            setPosition                     set the pointer to the scope of the parameter as parameter.
+                parameter:      const Node *
+            getNodeType                     return this node type.
+                return value:   const NodeType
+            getRoot                         if this type is root, return data.root, else throw Expection.
+                return value:   const Root &
+            setRoot                         if this type is root, set root as the parameter.
+                parameter:      const Root &     
+            getLeave                        if this type is leave, return data.root, else throw Expection.
+                return value:   const Leave &
+            setLeave                        if this type is leave, set root as the parameter.
+                parameter:      const Leave & 
+        */
         class Node
         {
             private:
