@@ -113,6 +113,7 @@ template <typename T = double>
             Leave leave;
 
             Data() {}
+
             Data(const Root & root) : root(root) { }
             Data(Root && root) : root(root) { }
 
@@ -129,13 +130,13 @@ template <typename T = double>
                 Data data;
 
                 NodePoint xPositive_yPositive_zPositive,
-                        xPositive_yPositive_zNegative,
-                        xPositive_yNegative_zNegative,
-                        xPositive_yNegative_zPositive,
-                        xNegative_yPositive_zPositive,
-                        xNegative_yPositive_zNegative,
-                        xNegative_yNegative_zNegative,
-                        xNegative_yNegative_zPositive;
+                          xPositive_yPositive_zNegative,
+                          xPositive_yNegative_zNegative,
+                          xPositive_yNegative_zPositive,
+                          xNegative_yPositive_zPositive,
+                          xNegative_yPositive_zNegative,
+                          xNegative_yNegative_zNegative,
+                          xNegative_yNegative_zPositive;
 
             public:
                 Node(const Node & node);
@@ -158,6 +159,16 @@ template <typename T = double>
                 NodePoint *getPositionPoint(const Node & node);
 
                 void setPosition(const NodePoint node);
+
+                const NodeType getNodeType() const;
+
+                const Root & getRoot() const;
+
+                void setRoot(const Root & root);
+
+                const Leave & getLeave() const;
+
+                void setLeave(const Leave & leave);
         };
     
     private:
@@ -377,6 +388,44 @@ template <typename T = double>
             release(node->xNegative_yNegative_zPositive);
         
         delete node;
+    }
+
+    template <typename T>
+    const typename Octree<T>::NodeType Octree<T>::Node::getNodeType() const
+    {
+        return type;
+    }
+
+    template <typename T> 
+    const typename Octree<T>::Root & Octree<T>::Node::getRoot() const
+    {
+        return data.root;
+    }
+
+    template <typename T> 
+    void Octree<T>::Node::setRoot(const Root & root)
+    {
+        if (type == NodeType::root)
+            data.root = root;
+        else
+            // TODO Expectoin
+            throw "Type Error!! Can't set root to a leave node.";
+    }
+
+    template <typename T> 
+    const typename Octree<T>::Leave & Octree<T>::Node::getLeave() const
+    {
+        return data.leave;
+    }
+
+    template <typename T> 
+    void Octree<T>::Node::setLeave(const Leave & leave)
+    {
+        if (type == NodeType::leave)
+            data.leave = leave;
+        else
+            // TODO Expectoin
+            throw "Type Error!! Can't set leave to a root node.";
     }
 
     template <typename T>
