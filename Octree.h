@@ -399,33 +399,29 @@ template <typename T = double>
     template <typename T> 
     const typename Octree<T>::Root & Octree<T>::Node::getRoot() const
     {
-        return data.root;
+        if (type == NodeType::root) return data.root;
+        else throw "Type Error! This node is leave!" // TODO Expectoin
     }
 
     template <typename T> 
     void Octree<T>::Node::setRoot(const Root & root)
     {
-        if (type == NodeType::root)
-            data.root = root;
-        else
-            // TODO Expectoin
-            throw "Type Error!! Can't set root to a leave node.";
+        if (type == NodeType::root) data.root = root;
+        else throw "Type Error!! Can't set root to a leave node."; // TODO Expectoin
     }
 
     template <typename T> 
     const typename Octree<T>::Leave & Octree<T>::Node::getLeave() const
     {
-        return data.leave;
+        if (type == NodeType::leave) return data.leave;
+        else throw "Type Error! This node is root!" // TODO Expectoin
     }
 
     template <typename T> 
     void Octree<T>::Node::setLeave(const Leave & leave)
     {
-        if (type == NodeType::leave)
-            data.leave = leave;
-        else
-            // TODO Expectoin
-            throw "Type Error!! Can't set leave to a root node.";
+        if (type == NodeType::leave) data.leave = leave;
+        else throw "Type Error!! Can't set leave to a root node."; // TODO Expectoin
     }
 
     template <typename T>
