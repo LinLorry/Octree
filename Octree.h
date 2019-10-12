@@ -476,7 +476,7 @@ namespace Octree
     const typename Octree<T>::Root & Octree<T>::Node::getRoot() const
     {
         if (type == NodeType::root) return data.root;
-        else throw "Type Error! This node is leave!" // TODO Expectoin
+        else throw "Type Error! This node is leave!"; // TODO Expectoin
     }
 
     template <typename T> 
@@ -490,7 +490,7 @@ namespace Octree
     const typename Octree<T>::Leave & Octree<T>::Node::getLeave() const
     {
         if (type == NodeType::leave) return data.leave;
-        else throw "Type Error! This node is root!" // TODO Expectoin
+        else throw "Type Error! This node is root!"; // TODO Expectoin
     }
 
     template <typename T> 
@@ -522,7 +522,7 @@ namespace Octree
     { 
         if (data.getNodeType() == NodeType::leave)
             this->insert(treeRoot, data);
-        else throw "Can't insert root!" // TODO Expectoin
+        else throw "Can't insert root!"; // TODO Expectoin
     }
 
     template <typename T>
