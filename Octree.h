@@ -443,7 +443,11 @@ template <typename T = double>
 
     template <typename T>
     inline void Octree<T>::insert(const Node & data)
-    { this->insert(treeRoot, data); }
+    { 
+        if (data.getNodeType() == NodeType::leave)
+            this->insert(treeRoot, data);
+        else throw "Can't insert root!" // TODO Expectoin
+    }
 
     template <typename T>
     void Octree<T>::insert(NodePoint node, const Node & data)
