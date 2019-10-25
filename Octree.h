@@ -5,6 +5,15 @@
 
 namespace Octree
 {
+    /*
+        OctreeExpection
+
+        Function:
+        OctreeExpection:    the init function, set up the expection.
+            parameter:  - ERROR_CODE
+        what:               return the error message.
+            return:     const char *
+    */
     class OctreeExpection : public std::exception
     {
     public:
@@ -37,7 +46,7 @@ namespace Octree
         ~Octree:    free whole tree.
         find:       find the node, retunr the point point to the node.
             parameter:  cosnt Node &
-            return: Node* 
+            return:     Node* 
         insert:     insert the node into tree. If node which will be insert type not leave, throw expection. 
             parameter:  const Node &
         remove:     remove the node in the tree.
