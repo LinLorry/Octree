@@ -10,13 +10,14 @@ namespace Octree
     public:
         enum ERROR_CODE{
             INSERT_ERROR,
-            REMOVE_ERROR
+            REMOVE_ERROR,
+            TYPE_ERROR
         };
 
         OctreeExpection(ERROR_CODE code);
         const char * what();
     private:
-        static const char *error_str[2];
+        static const char *error_str[3];
     private:
         ERROR_CODE code;
     };
@@ -300,11 +301,12 @@ namespace Octree
     OctreeExpection::OctreeExpection(ERROR_CODE code) : code(code){ }
 
     const char *OctreeExpection::what()  { return error_str[code]; }
-    
-    const char *OctreeExpection::error_str[2] = 
+
+    const char *OctreeExpection::error_str[3] = 
     {
         "OCTREE::ERROR::INSER_ERROR",
-        "OCTREE::ERROR::REMOVE_RRROR"
+        "OCTREE::ERROR::REMOVE_ERROR",
+        "OCTREE::ERROE::TYPE_ERROR"
     };
 
     template <typename T>
