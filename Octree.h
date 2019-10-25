@@ -297,6 +297,7 @@ namespace Octree
         void remove(NodePoint node, const Node & data);
     };
 
+    typedef OctreeExpection::ERROR_CODE ERROR_TYPE;
 
     OctreeExpection::OctreeExpection(ERROR_CODE code) : code(code){ }
 
@@ -304,7 +305,7 @@ namespace Octree
 
     const char *OctreeExpection::error_str[3] = 
     {
-        "OCTREE::ERROR::INSER_ERROR",
+        "OCTREE::ERROR::INSERT_ERROR",
         "OCTREE::ERROR::REMOVE_ERROR",
         "OCTREE::ERROE::TYPE_ERROR"
     };
@@ -507,28 +508,28 @@ namespace Octree
     const typename Octree<T>::Root & Octree<T>::Node::getRoot() const
     {
         if (type == NodeType::root) return data.root;
-        else throw "Type Error! This node is leave!"; // TODO Expectoin
+        else throw OctreeExpection(ERROR_TYPE::TYPE_ERROR);
     }
 
     template <typename T> 
     void Octree<T>::Node::setRoot(const Root & root)
     {
         if (type == NodeType::root) data.root = root;
-        else throw "Type Error!! Can't set root to a leave node."; // TODO Expectoin
+        else throw OctreeExpection(ERROR_TYPE::TYPE_ERROR);
     }
 
     template <typename T> 
     const typename Octree<T>::Leave & Octree<T>::Node::getLeave() const
     {
         if (type == NodeType::leave) return data.leave;
-        else throw "Type Error! This node is root!"; // TODO Expectoin
+        else throw OctreeExpection(ERROR_TYPE::TYPE_ERROR);
     }
 
     template <typename T> 
     void Octree<T>::Node::setLeave(const Leave & leave)
     {
         if (type == NodeType::leave) data.leave = leave;
-        else throw "Type Error!! Can't set leave to a root node."; // TODO Expectoin
+        else throw OctreeExpection(ERROR_TYPE::TYPE_ERROR);
     }
 
     template <typename T>
@@ -553,7 +554,7 @@ namespace Octree
     { 
         if (data.getNodeType() == NodeType::leave)
             this->insert(treeRoot, data);
-        else throw "Can't insert root!"; // TODO Expectoin
+        else throw  OctreeExpection(ERROR_TYPE::INSERT_ERROR);
     }
 
     template <typename T>
