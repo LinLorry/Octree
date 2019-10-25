@@ -1,8 +1,26 @@
 #ifndef OCTREE_H
 #define OCTREE_H
 
+#include <exception>
+
 namespace Octree
 {
+    class OctreeExpection : public std::exception
+    {
+    public:
+        enum ERROR_CODE{
+            INSERT_ERROR,
+            REMOVE_ERROR
+        };
+
+        OctreeExpection(ERROR_CODE code);
+        const char * what();
+    private:
+        static const char *error_str[2];
+    private:
+        ERROR_CODE code;
+    };
+
     /*
         Octree:
 
@@ -276,6 +294,17 @@ namespace Octree
         void insert(NodePoint node, const Node & data);
 
         void remove(NodePoint node, const Node & data);
+    };
+
+
+    OctreeExpection::OctreeExpection(ERROR_CODE code) : code(code){ }
+
+    const char *OctreeExpection::what()  { return error_str[code]; }
+    
+    const char *OctreeExpection::error_str[2] = 
+    {
+        "OCTREE::ERROR::INSER_ERROR",
+        "OCTREE::ERROR::REMOVE_RRROR"
     };
 
     template <typename T>
