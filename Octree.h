@@ -2,6 +2,7 @@
 #define OCTREE_H
 
 #include <exception>
+#include <stack>
 
 namespace Octree
 {
@@ -20,13 +21,15 @@ namespace Octree
         enum ERROR_CODE{
             INSERT_ERROR = 0,
             REMOVE_ERROR = 0x1,
-            TYPE_ERROR = 0x100
+            TYPE_ERROR = 0x100,
+            TREE_EMPTY,
+            OUT_RANGE
         };
 
         OctreeExpection(ERROR_CODE code);
         const char * what();
     private:
-        static const char *error_str[3];
+        static const char *error_str[5];
     private:
         ERROR_CODE code;
     };
@@ -269,13 +272,38 @@ namespace Octree
 
             const NodeType getNodeType() const;
 
-            const Root & getRoot() const;
+            const Root &getRoot() const;
 
-            void setRoot(const Root & root);
+            void setRoot(const Root &root);
 
-            const Leave & getLeave() const;
+            const Leave &getLeave() const;
 
-            void setLeave(const Leave & leave);
+            void setLeave(const Leave &leave);
+        };
+
+        class Iterator
+        {
+        public:
+            const bool haveNext() const;
+
+            const Leave &operator*() const;
+
+            Iterator &operator++();
+
+            Iterator &operator--();
+
+            bool operator==(const Iterator &iter) const;
+
+            bool operator!=(const Iterator &iter) const;
+
+        private:
+            Iterator(const NodePoint node);
+
+            std::stack<NodePoint> node_stack;
+            std::stack<Result> point_stack;
+
+            NodePoint node;
+            Result point;
         };
     
     private:
@@ -292,7 +320,7 @@ namespace Octree
             const T zMin, const T zMax
         );
 
-        Octree(const Octree<T>::Root & r);
+        Octree(const Octree<T>::Root &r);
 
         ~Octree();
         
@@ -316,11 +344,13 @@ namespace Octree
 
     const char *OctreeExpection::what()  { return error_str[code]; }
 
-    const char *OctreeExpection::error_str[3] = 
+    const char *OctreeExpection::error_str[5] = 
     {
         "OCTREE::ERROR::INSERT_ERROR",
         "OCTREE::ERROR::REMOVE_ERROR",
-        "OCTREE::ERROE::TYPE_ERROR"
+        "OCTREE::ERROE::TYPE_ERROR",
+        "OCTREE::ERROR::TREE_EMPTY",
+        "OCTREE::ERROR::OUT_RANGE"
     };
 
     template <typename T>
@@ -345,7 +375,7 @@ namespace Octree
         case Result::xNegative_yNegative_zPositive:
             return &(node->xNegative_yNegative_zPositive);
         default:
-            return nullptr;
+            throw new OctreeExpection(ERROR_TYPE::OUT_RANGE);
         }
     }
 
@@ -465,31 +495,102 @@ namespace Octree
     }
 
     template <typename T> 
-    const typename Octree<T>::Root & Octree<T>::Node::getRoot() const
+    const typename Octree<T>::Root &Octree<T>::Node::getRoot() const
     {
         if (type == NodeType::root) return data.root;
         else throw OctreeExpection(ERROR_TYPE::TYPE_ERROR);
     }
 
     template <typename T> 
-    void Octree<T>::Node::setRoot(const Root & root)
+    void Octree<T>::Node::setRoot(const Root &root)
     {
         if (type == NodeType::root) data.root = root;
         else throw OctreeExpection(ERROR_TYPE::TYPE_ERROR);
     }
 
     template <typename T> 
-    const typename Octree<T>::Leave & Octree<T>::Node::getLeave() const
+    const typename Octree<T>::Leave &Octree<T>::Node::getLeave() const
     {
         if (type == NodeType::leave) return data.leave;
         else throw OctreeExpection(ERROR_TYPE::TYPE_ERROR);
     }
 
     template <typename T> 
-    void Octree<T>::Node::setLeave(const Leave & leave)
+    void Octree<T>::Node::setLeave(const Leave &leave)
     {
         if (type == NodeType::leave) data.leave = leave;
         else throw OctreeExpection(ERROR_TYPE::TYPE_ERROR);
+    }
+
+    template <typename T>
+    Octree<T>::Iterator::Iterator(const NodePoint node)
+    {
+        if (node->type == NodeType::root)
+        {
+            this->node = nullptr;
+            node_stack.push(node);
+            point = Result::xPositive_yPositive_zPositive;
+
+            while (point <= Result::xNegative_yNegative_zPositive)
+            {
+                NodePoint tmp = *(Node::getNodePositionPoint(node_stack.top(), point));
+                if (tmp != nullptr)
+                {
+                    if (tmp->type == NodeType::root)
+                    {
+                        node_stack.push(tmp);
+                        point_stack.push(point);
+                        point = Result::xPositive_yPositive_zPositive;
+                        continue;
+                    }
+                    this->node = tmp;
+                    break;
+                }
+                point++;
+            }
+
+            if (this->node == nullptr) throw new OctreeExpection(ERROR_TYPE::TREE_EMPTY); 
+        }
+        else
+        {
+            this->node = node; 
+        }
+        
+    }
+
+    template <typename T>
+    const bool Octree<T>::Iterator::haveNext() const
+    {
+        if (this->empty())
+            return false;
+
+        Result p = point + 1;
+        NodePoint n = node_stack.top();
+
+        while (p <= Result::xNegative_yNegative_zPositive)
+        {
+            if (*(Node::getNodePositionPoint(n, p++)) != nullptr) return true;
+        }
+
+        p = point;
+        point = point_stack.top();
+
+        node_stack.pop();
+        point_stack.pop();
+
+        bool result = this->haveNext();
+
+        node_stack.push(n);
+        point_stack.push(point);
+        point = p;
+
+        return result; 
+    }
+
+    template <typename T>
+    const typename Octree<T>::Leave &Octree<T>::Iterator::operator*() const
+    {
+        return node->data.leave;
     }
 
     template <typename T>
@@ -530,7 +631,7 @@ namespace Octree
     ) : treeRoot(new Node(Root(xMin, xMax, yMin, yMax, zMin, zMax))), size(0) { }
 
     template <typename T>
-    Octree<T>::Octree(const Root & r) : treeRoot(new Node(r)), size(0) { }
+    Octree<T>::Octree(const Root &r) : treeRoot(new Node(r)), size(0) { }
 
     template <typename T>
     Octree<T>::~Octree() { release(treeRoot); }
