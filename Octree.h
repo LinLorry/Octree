@@ -706,7 +706,7 @@ namespace Octree
     {
         NodePoint *p = (*node)->getPositionPoint(data);
         if (*p == nullptr) return;
-        else if ((*p)->type == NodeType::root) remove(*p, data);
+        else if ((*p)->type == NodeType::root) remove(p, data);
         else 
         {
             delete *p;
