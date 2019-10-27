@@ -335,7 +335,7 @@ namespace Octree
         
         void insert(NodePoint node, const NodePoint data);
 
-        void remove(NodePoint node, const NodePoint data);
+        void remove(NodePoint *node, const NodePoint data);
     };
 
     typedef OctreeExpection::ERROR_CODE ERROR_TYPE;
@@ -484,8 +484,7 @@ namespace Octree
     template <typename T>
     void Octree<T>::Node::setPosition(const NodePoint node)
     {
-        NodePoint *point = Node::getNodePositionPoint(this, this->comparator(node));
-        if (point != nullptr) *point = node;
+        (*Node::getNodePositionPoint(this, this->comparator(node))) = node;
     }
 
     template <typename T>
@@ -652,9 +651,8 @@ namespace Octree
     void Octree<T>::insert(NodePoint node, const NodePoint data)
     {
         NodePoint *p = node->getPositionPoint(data);
-        if (p == nullptr)
-            return ;
-        else if (*p == nullptr)
+
+        if (*p == nullptr)
         {
             *p = new Node(data);
             size++;
@@ -696,37 +694,49 @@ namespace Octree
             *p = n;
         }
         
-        return insert(*p, data);
+        insert(*p, data);
     }
 
     template <typename T>
     inline void Octree<T>::remove(const NodePoint data)
-    { return this->remove(treeRoot, data); }
+    { return this->remove(&treeRoot, data); }
 
     template <typename T>
-    void Octree<T>::remove(NodePoint node, const NodePoint data)
+    void Octree<T>::remove(NodePoint *node, const NodePoint data)
     {
-        NodePoint *p = node->getPositionPoint(data);
-        if (p == nullptr)
-            return ;
-        else if (*p == nullptr) return;
-        else if ((*p)->type == NodeType::leave)
+        NodePoint *p = (*node)->getPositionPoint(data);
+        if (*p == nullptr) return;
+        else if ((*p)->type == NodeType::root) remove(*p, data);
+        else 
         {
             delete *p;
             *p = nullptr;
             size--;
-            return ;
-        } 
-        remove(*p, data);
+        }
+
+        if 
+        (
+            *p == nullptr && 
+            (*node)->xPositive_yPositive_zPositive == nullptr && 
+            (*node)->xPositive_yPositive_zNegative == nullptr && 
+            (*node)->xPositive_yNegative_zNegative == nullptr &&
+            (*node)->xPositive_yNegative_zPositive == nullptr &&
+            (*node)->xNegative_yPositive_zPositive == nullptr &&
+            (*node)->xNegative_yPositive_zNegative == nullptr &&
+            (*node)->xNegative_yNegative_zNegative == nullptr &&
+            (*node)->xNegative_yNegative_zPositive == nullptr
+        ) 
+        {
+            delete *node;
+            *node = nullptr;
+        }
     }
 
     template <typename T>
     typename Octree<T>::NodePoint Octree<T>::find(NodePoint node, const NodePoint data)
     {
         NodePoint *p = node->getPositionPoint(data);
-        if (p == nullptr) 
-            return nullptr;
-        else if (*p != nullptr && (*p)->type == NodeType::root)
+        if (*p != nullptr && (*p)->type == NodeType::root)
             return find(*p, data);
         return node;
     }
