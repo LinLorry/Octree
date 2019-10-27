@@ -417,12 +417,8 @@ namespace Octree
     const typename Octree<T>::Result Octree<T>::Node::comparator(const NodePoint node) const
     {
         if (type == NodeType::leave)
-            if (
-                node->type == NodeType::leave && 
-                this->data.leave.x == node->data.leave.x &&
-                this->data.leave.y == node->data.leave.y &&
-                this->data.leave.z == node->data.leave.z
-            ) return Result::equal;
+            if (node->type == NodeType::leave && this->data.leave == node->data.leave) 
+                return Result::equal;
             else return Result::undefine;
         
         if (node->type == NodeType::root) return Result::undefine;
