@@ -3,6 +3,7 @@
 
 #include <exception>
 #include <stack>
+#include <cstring>
 
 namespace Octree
 {
@@ -104,17 +105,18 @@ namespace Octree
 
             Root() { }
 
-            Root(const Root & root) : 
+            Root(const Root &root) : 
                 xMin(root.xMin), xMax(root.xMax),
                 yMin(root.yMin), yMax(root.yMax),
                 zMin(root.zMin), zMax(root.zMax) { }
 
-            Root(Root && root) :
+            Root(Root &&root) :
                 xMin(root.xMin), xMax(root.xMax),
                 yMin(root.yMin), yMax(root.yMax),
                 zMin(root.zMin), zMax(root.zMax) { }
 
-            Root(               
+            Root
+            (               
                 T xMin, T xMax,
                 T yMin, T yMax,
                 T zMin, T zMax
@@ -123,25 +125,15 @@ namespace Octree
                 yMin(yMin), yMax(yMax),
                 zMin(zMin), zMax(zMax) { }
 
-            void operator=(const Root & root)
+            inline Root &operator=(const Root &root) 
             {
-                xMin = root.xMin;
-                xMax = root.xMax;
-                yMin = root.yMin;
-                yMax = root.yMax;
-                zMin = root.zMin;
-                zMax = root.zMax;
+                std::memcpy(this, &root, sizeof(Root));
+                return *this;
             }
 
-            void operator=(Root && root)
-            {
-                xMin = root.xMin;
-                xMax = root.xMax;
-                yMin = root.yMin;
-                yMax = root.yMax;
-                zMin = root.zMin;
-                zMax = root.zMax;
-            }
+            inline bool operator==(const Root &root) const { return std::memcmp(this, &root, sizeof(Root)) == 0; }
+
+            inline bool operator!=(const Root &root) const { return std::memcmp(this, &root, sizeof(Root)) != 0; }
         };
 
         /*
