@@ -176,10 +176,10 @@ namespace Octree
 
             Data() {}
 
-            Data(const Root & root) : root(root) { }
+            Data(const Root &root) : root(root) { }
             Data(Root && root) : root(root) { }
 
-            Data(const Leave & leave) : leave(leave) { }
+            Data(const Leave &leave) : leave(leave) { }
             Data(Leave && leave) : leave(leave) { }
         };
 
@@ -234,10 +234,10 @@ namespace Octree
 
         public:
             Node(const NodePoint node);
-            Node(const Leave & leave);
+            Node(const Leave &leave);
 
             Node(
-                const Root & root, 
+                const Root &root, 
                 const NodePoint xPositive_yPositive_zPositive = nullptr,
                 const NodePoint xPositive_yPositive_zNegative = nullptr,
                 const NodePoint xPositive_yNegative_zNegative = nullptr,
@@ -380,7 +380,7 @@ namespace Octree
     }
 
     template <typename T>
-    Octree<T>::Node::Node(const Leave & leave) : 
+    Octree<T>::Node::Node(const Leave &leave) : 
         type(NodeType::leave), data(leave),
         xPositive_yPositive_zPositive(nullptr),
         xPositive_yPositive_zNegative(nullptr),
@@ -393,7 +393,7 @@ namespace Octree
 
     template <typename T>
     Octree<T>::Node::Node(
-        const Root & root, 
+        const Root &root, 
         const NodePoint xPositive_yPositive_zPositive,
         const NodePoint xPositive_yPositive_zNegative,
         const NodePoint xPositive_yNegative_zNegative,
@@ -504,43 +504,41 @@ namespace Octree
     template <typename T>
     Octree<T>::Iterator::Iterator(const NodePoint node)
     {
-        if (node->type == NodeType::root)
-        {
-            this->node = nullptr;
-            node_stack.push(node);
-            point = Result::xPositive_yPositive_zPositive;
+        if (node->type == NodeType::leave) throw new OctreeExpection(ERROR_TYPE::TYPE_ERROR);
 
-            while (point <= Result::xNegative_yNegative_zPositive)
+        this->node = nullptr;
+        node_stack.push(node);
+        point = Result::xPositive_yPositive_zPositive;
+
+        while (point <= Result::xNegative_yNegative_zPositive)
+        {
+            NodePoint tmp = *(Node::getNodePositionPoint(node_stack.top(), point));
+            if (tmp != nullptr)
             {
-                NodePoint tmp = *(Node::getNodePositionPoint(node_stack.top(), point));
-                if (tmp != nullptr)
+                if (tmp->type == NodeType::root)
                 {
-                    if (tmp->type == NodeType::root)
-                    {
-                        node_stack.push(tmp);
-                        point_stack.push(point);
-                        point = Result::xPositive_yPositive_zPositive;
-                        continue;
-                    }
-                    this->node = tmp;
-                    break;
+                    node_stack.push(tmp);
+                    point_stack.push(point);
+                    point = Result::xPositive_yPositive_zPositive;
+                    continue;
                 }
-                point++;
+                this->node = tmp;
+                break;
             }
+            point++;
+        }
 
+        if (this->node == nullptr) throw new OctreeExpection(ERROR_TYPE::TREE_EMPTY); 
             if (this->node == nullptr) throw new OctreeExpection(ERROR_TYPE::TREE_EMPTY); 
-        }
-        else
-        {
-            this->node = node; 
-        }
-        
+        if (this->node == nullptr) throw new OctreeExpection(ERROR_TYPE::TREE_EMPTY); 
+            if (this->node == nullptr) throw new OctreeExpection(ERROR_TYPE::TREE_EMPTY); 
+        if (this->node == nullptr) throw new OctreeExpection(ERROR_TYPE::TREE_EMPTY); 
     }
 
     template <typename T>
     const bool Octree<T>::Iterator::haveNext() const
     {
-        if (this->empty())
+        if (node_stack.empty())
             return false;
 
         Result p = point + 1;
@@ -570,6 +568,108 @@ namespace Octree
     const typename Octree<T>::Leave &Octree<T>::Iterator::operator*() const
     {
         return node->data.leave;
+    }
+    
+    template <typename T>
+    typename Octree<T>::Iterator &Octree<T>::Iterator::operator++()
+    {
+        if (node_stack.empty())
+            throw new OctreeExpection(ERROR_TYPE::TREE_EMPTY);
+
+        NodePoint n = node;
+        Result p = point++;
+        
+
+        while (point <= Result::xNegative_yNegative_zPositive)
+        {
+            NodePoint tmp = *(Node::getNodePositionPoint(node_stack.top(), point));
+            if (tmp != nullptr)
+            {
+                if (tmp->type == NodeType::leave) return *this;
+                else 
+                {
+                    node_stack.push(tmp);
+                    point_stack.push(point);
+                    point = Result::xPositive_yPositive_zPositive;
+                    return this->operator++();
+                }
+            }
+            ++point;
+        }
+
+        node = node_stack.top();
+        point = point_stack.top();
+
+        node_stack.pop();
+        point_stack.pop();
+        
+        try { return this->operator++(); }
+        catch(const OctreeExpection &e)
+        {
+            node_stack.push(node);
+            point_stack.push(point);
+
+            node = n;
+            point = p;
+            throw e;
+        }
+    }
+
+    template <typename T>
+    typename Octree<T>::Iterator &Octree<T>::Iterator::operator--()
+    {
+        if (node_stack.empty())
+            throw new OctreeExpection(ERROR_TYPE::TREE_EMPTY);
+
+        NodePoint n = node;
+        Result p = point--;
+        
+
+        while (point >= Result::xPositive_yPositive_zPositive)
+        {
+            NodePoint tmp = *(Node::getNodePositionPoint(node_stack.top(), point));
+            if (tmp != nullptr)
+            {
+                if (tmp->type == NodeType::leave) return *this;
+                else 
+                {
+                    node_stack.push(tmp);
+                    point_stack.push(point);
+                    point = Result::xNegative_yNegative_zPositive;
+                    return this->operator++();
+                }
+            }
+            --point;
+        }
+
+        node = node_stack.top();
+        point = point_stack.top();
+
+        node_stack.pop();
+        point_stack.pop();
+        
+        try { return this->operator++(); }
+        catch(const OctreeExpection &e)
+        {
+            node_stack.push(node);
+            point_stack.push(point);
+
+            node = n;
+            point = p;
+            throw e;
+        }
+    }
+
+    template <typename T>
+    bool Octree<T>::Iterator::operator==(const Iterator &iter) const
+    {
+        return this->node->data.leave == iter.node->data.leave;
+    }
+
+    template <typename T>
+    bool Octree<T>::Iterator::operator!=(const Iterator &iter) const
+    {
+        return this->node->data.leave != iter.node->data.leave;
     }
 
     template <typename T>
