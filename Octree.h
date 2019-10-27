@@ -147,29 +147,21 @@ namespace Octree
 
             Leave() { }
             
-            Leave(const Leave & leave) : 
-                x(leave.x), y(leave.y), z(leave.z) { }
-
-            Leave(Leave && leave) :
+            Leave(const Leave &leave) : 
                 x(leave.x), y(leave.y), z(leave.z) { }
 
             Leave(const T x, const T y, const T z) :
                 x(x), y(y), z(z) { }
 
-
-            void operator=(const Leave & leave)
+            inline Leave &operator=(const Leave &leave)
             {
-                x = leave.x;
-                y = leave.y;
-                z = leave.z;
+                std::memcpy(this, &leave, sizeof(Leave));
+                return *this;
             }
 
-            void operator=(Leave && leave)
-            {
-                x = leave.x;
-                y = leave.y;
-                z = leave.z;
-            }
+            inline bool operator==(const Leave &leave) const { return std::memcmp(this, &leave, sizeof(Leave)) == 0; }
+
+            inline bool operator!=(const Leave &leave) const { return std::memcmp(this, &leave, sizeof(Leave)) != 0; }
         };
 
         /*
