@@ -33,6 +33,8 @@ const static char *fs = "#version 330 core\n"
                         "   FragColor = vec4(0.5f, 0.3f, 1.0f, 1.0f);\n"
                         "}";
 
+const unsigned int getCircularConeVAO();
+
 int main()
 {
     Octree::Octree<> tree(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
@@ -85,6 +87,8 @@ int main()
     }
 
     Shader shader(vs, fs);
+
+    const unsigned int circularConeVAO = getCircularConeVAO();
     
     unsigned int VAO;
     unsigned int VBO;
@@ -128,9 +132,13 @@ int main()
         trans = glm::translate(trans, glm::vec3(0.01f, 0.0f, 0.0f));
         // trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
         shader.setMatrix4fv("transform", glm::mat4(1.0f));
-
+    
         glBindVertexArray(VAO);
         glDrawArrays(GL_POINTS, 0, x.size());
+
+        shader.setMatrix4fv("transform", glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
+        glBindVertexArray(circularConeVAO);
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 198);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -138,4 +146,38 @@ int main()
 
     glfwTerminate();
     return 0;
+}
+
+const unsigned int getCircularConeVAO()
+{
+    unsigned int VAO;
+    unsigned int VBO;
+
+    glGenBuffers(1, &VBO);
+    glGenVertexArrays(1, &VAO);
+
+    glBindVertexArray(VAO);
+
+    vector<float> tmp;
+    tmp.push_back(0);
+    tmp.push_back(0);
+    tmp.push_back(1.0f);
+
+    for (float angle = 0; angle <= (2.001f * M_PI); angle += (M_PI / 32.0f))
+    {
+        float x = 0.1f * sin(angle);
+        float y = 0.1f * cos(angle);
+
+        tmp.push_back(x);
+        tmp.push_back(y);
+        tmp.push_back(0.0);
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, tmp.size() * sizeof(float), &tmp[0], GL_STATIC_DRAW);
+    
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+    glEnableVertexAttribArray(0);
+
+    return VAO;
 }
