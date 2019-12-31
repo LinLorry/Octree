@@ -117,11 +117,13 @@ int main()
     mat4 random_sphere_point_model[20];
     vec3 crosses[20];
     float angles[20];
+    bool flag[20];
 
     const vec3 point(0.0f, 0.0f, 1.0f);
 
     for (size_t i = 0; i < 20; ++i)
     {
+        flag[i] = false;
         const vec3 & tmp = random_in_unit_sphere();
         const vec3 normal = -glm::normalize(tmp);
 
@@ -155,10 +157,31 @@ int main()
 
         for (size_t i = 0; i < 20; ++i)
         {
+
+            if (flag[i]) continue;
+
             mat4 & model = random_sphere_point_model[i];
 
             model = translate(model, random_sphere_point[i]);
-         
+            try
+            {
+                if (tree.detection(model[3][0], model[3][1]+0.0936f, model[3][2], 0.05f))
+                {
+                    flag[i] = true;
+                    cout << i << ": "
+                            << "X: " << model[3][0] 
+                            << "\tY: " << model[3][1]
+                            << "\tZ: " << model[3][2] << endl;    
+                }
+            }
+            catch(Octree::OctreeExpection &e)
+            {
+                cerr << e.what() << endl;
+                flag[i] = true;
+                // glfwTerminate();
+                // return -1;
+            }
+
             const mat4 tmp = glm::rotate(model, angles[i], crosses[i]);
             shader.setMatrix4fv("model", tmp);
 
