@@ -7,6 +7,10 @@ extern float deltaTime;
 extern float lastFrame;
 extern Camera camera;
 
+using glm::vec3;
+using glm::mat4;
+using glm::translate;
+
 using std::cerr;
 using std::cout;
 using std::endl;
@@ -18,11 +22,10 @@ const static char *vs = "#version 330 core\n"
                         "uniform mat4 model;\n"
                         "uniform mat4 view;\n"
                         "uniform mat4 projection;\n"
-                        "uniform mat4 transform;\n"
                         ""
                         "void main()\n"
                         "{"
-                        "   gl_Position = projection * view * transform * model * vec4(aPos, 1.0f);"
+                        "   gl_Position = projection * view * model * vec4(aPos, 1.0f);"
                         "}";
 
 const static char *fs = "#version 330 core\n"
@@ -34,6 +37,8 @@ const static char *fs = "#version 330 core\n"
                         "}";
 
 const unsigned int getCircularConeVAO();
+
+const vec3 random_in_unit_sphere();
 
 int main()
 {
@@ -104,8 +109,30 @@ int main()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
 
+    const mat4 bunny_model = translate(mat4(1.0f), vec3(0.0f, -0.0936f, 0.0f));
+
     float currentFrame;
-    glm::mat4 trans = glm::mat4(1.0f);
+
+    vec3 random_sphere_point[20];
+    mat4 random_sphere_point_model[20];
+    vec3 crosses[20];
+    float angles[20];
+
+    const vec3 point(0.0f, 0.0f, 1.0f);
+
+    for (size_t i = 0; i < 20; ++i)
+    {
+        const vec3 & tmp = random_in_unit_sphere();
+        const vec3 normal = -glm::normalize(tmp);
+
+        angles[i] = glm::radians(-acos(normal.z) * (180/M_PI));
+
+        random_sphere_point[i] = normal * 0.001f;
+
+        random_sphere_point_model[i] = translate(mat4(1.0f), tmp);
+
+        crosses[i] = glm::cross(normal, point);
+    }
 
     while (!glfwWindowShouldClose(window))
     {
@@ -120,25 +147,29 @@ int main()
 
         shader.use();
 
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         shader.setMatrix4fv("projection", projection);
 
-        glm::mat4 view = camera.GetViewMatrix();
+        mat4 view = camera.GetViewMatrix();
         shader.setMatrix4fv("view", view);
 
-        shader.setMatrix4fv("model", glm::mat4(1.0f));
+        for (size_t i = 0; i < 20; ++i)
+        {
+            mat4 & model = random_sphere_point_model[i];
 
-        // trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
-        trans = glm::translate(trans, glm::vec3(0.01f, 0.0f, 0.0f));
-        // trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
-        shader.setMatrix4fv("transform", glm::mat4(1.0f));
+            model = translate(model, random_sphere_point[i]);
+         
+            const mat4 tmp = glm::rotate(model, angles[i], crosses[i]);
+            shader.setMatrix4fv("model", tmp);
+
+            glBindVertexArray(circularConeVAO);
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 198);
+        }
+
+        shader.setMatrix4fv("model", bunny_model);
     
         glBindVertexArray(VAO);
         glDrawArrays(GL_POINTS, 0, x.size());
-
-        shader.setMatrix4fv("transform", glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
-        glBindVertexArray(circularConeVAO);
-        glDrawArrays(GL_TRIANGLE_FAN, 0, 198);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -161,16 +192,16 @@ const unsigned int getCircularConeVAO()
     vector<float> tmp;
     tmp.push_back(0);
     tmp.push_back(0);
-    tmp.push_back(1.0f);
+    tmp.push_back(0);
 
     for (float angle = 0; angle <= (2.001f * M_PI); angle += (M_PI / 32.0f))
     {
-        float x = 0.1f * sin(angle);
-        float y = 0.1f * cos(angle);
+        float x = 0.005f * sin(angle);
+        float y = 0.005f * cos(angle);
 
         tmp.push_back(x);
         tmp.push_back(y);
-        tmp.push_back(0.0);
+        tmp.push_back(-0.1f);
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -180,4 +211,19 @@ const unsigned int getCircularConeVAO()
     glEnableVertexAttribArray(0);
 
     return VAO;
+}
+
+const vec3 random_in_unit_sphere()
+{
+    vec3 p;
+    do
+    {
+        p = vec3(drand48(), drand48(), drand48());
+        p.x *= 2;
+        p.y *= 2;
+        p.z *= 2;
+        p -= vec3(1,1,1);
+    } while(dot(p,p) >= 1.0); 
+    
+    return p;
 }
