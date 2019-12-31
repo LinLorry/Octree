@@ -21,18 +21,18 @@ namespace Octree
     public:
         enum ERROR_CODE{
             INSERT_ERROR = 0,
-            REMOVE_ERROR = 0x1,
-            TYPE_ERROR = 0x100,
+            REMOVE_ERROR,
+            TYPE_ERROR,
             TREE_EMPTY,
             OUT_RANGE
         };
 
         OctreeExpection(ERROR_CODE code);
         const char * what();
+        ERROR_CODE code;
     private:
         static const char *error_str[5];
     private:
-        ERROR_CODE code;
     };
 
     /*
@@ -312,6 +312,8 @@ namespace Octree
         
         NodePoint find(const Node & data);
 
+        bool detection(const T x, const T y, const T z, const T radius);
+
         void insert(const Node & data);
 
         void remove(const NodePoint data);
@@ -361,7 +363,7 @@ namespace Octree
         case Result::xNegative_yNegative_zPositive:
             return &(node->xNegative_yNegative_zPositive);
         default:
-            throw new OctreeExpection(ERROR_TYPE::OUT_RANGE);
+            throw OctreeExpection(ERROR_TYPE::OUT_RANGE);
         }
     }
 
@@ -546,11 +548,11 @@ namespace Octree
             point++;
         }
 
-        if (this->node == nullptr) throw new OctreeExpection(ERROR_TYPE::TREE_EMPTY); 
-            if (this->node == nullptr) throw new OctreeExpection(ERROR_TYPE::TREE_EMPTY); 
-        if (this->node == nullptr) throw new OctreeExpection(ERROR_TYPE::TREE_EMPTY); 
-            if (this->node == nullptr) throw new OctreeExpection(ERROR_TYPE::TREE_EMPTY); 
-        if (this->node == nullptr) throw new OctreeExpection(ERROR_TYPE::TREE_EMPTY); 
+        if (this->node == nullptr) throw OctreeExpection(ERROR_TYPE::TREE_EMPTY); 
+            if (this->node == nullptr) throw OctreeExpection(ERROR_TYPE::TREE_EMPTY); 
+        if (this->node == nullptr) throw OctreeExpection(ERROR_TYPE::TREE_EMPTY); 
+            if (this->node == nullptr) throw OctreeExpection(ERROR_TYPE::TREE_EMPTY); 
+        if (this->node == nullptr) throw OctreeExpection(ERROR_TYPE::TREE_EMPTY); 
     }
 
     template <typename T>
@@ -592,7 +594,7 @@ namespace Octree
     typename Octree<T>::Iterator &Octree<T>::Iterator::operator++()
     {
         if (node_stack.empty())
-            throw new OctreeExpection(ERROR_TYPE::TREE_EMPTY);
+            throw OctreeExpection(ERROR_TYPE::TREE_EMPTY);
 
         NodePoint n = node;
         Result p = point++;
@@ -637,7 +639,7 @@ namespace Octree
     typename Octree<T>::Iterator &Octree<T>::Iterator::operator--()
     {
         if (node_stack.empty())
-            throw new OctreeExpection(ERROR_TYPE::TREE_EMPTY);
+            throw OctreeExpection(ERROR_TYPE::TREE_EMPTY);
 
         NodePoint n = node;
         Result p = point--;
@@ -736,7 +738,37 @@ namespace Octree
     template <typename T>
     inline typename Octree<T>::NodePoint Octree<T>::find(const Node & data)
     { return this->find(treeRoot, data); }
+    
+    template <typename T>
+    bool Octree<T>::detection(const T x, const T y, const T z, const T radius)
+    {
+        if (size == 0) return false;
 
+        const Root & root = treeRoot->data.root;
+
+        const T xMin = x - radius, xMax = x + radius,
+                yMin = y - radius, yMax = y + radius,
+                zMin = z - radius, zMax = z + radius;
+
+        if (
+            xMin > root.xMax || xMax < root.xMin ||
+            yMin > root.yMax || yMax < root.yMin ||
+            zMin > root.zMax || zMax < root.zMin
+        ) return false;
+
+        const Node node(Leave(x, y, z));
+
+        const Root & r = this->find(node)->data.root;
+
+        if (
+            xMin < r.xMin && xMax > r.xMax &&
+            yMin < r.yMin && yMax > r.yMax &&
+            zMin < r.zMin && zMax > r.zMax
+        ) return true;
+
+        return false;
+    }
+    
     template <typename T>
     inline void Octree<T>::insert(const Node & data)
     { 
@@ -838,7 +870,6 @@ namespace Octree
             return find(*p, data);
         return node;
     }
-
 } // namespace Octree
 
 
